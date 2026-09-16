@@ -410,11 +410,11 @@
 
         <!-- Interactive Policy Test Controls -->
         <div class="config-panel">
-            <span>Password Policy Simulator:</span>
+            <span>Password Status:</span>
             <select id="passwordAgeSim" class="config-select" onchange="onPolicySimChange()">
-                <option value="30">Normal (30 Days Old)</option>
-                <option value="175">Expiring Soon (175 Days)</option>
-                <option value="180" selected>Expired (180 Days Limit)</option>
+                <option value="30" selected>Recent Password (Valid / Active)</option>
+                <option value="175">Expiring Soon (175 Days Old)</option>
+                <option value="180">Expired (180 Days Limit Reached)</option>
             </select>
         </div>
 
