@@ -1,25 +1,31 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="hi">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>RailNet VPN - Phase 2 (OpenVPN Ready)</title>
-    <meta name="description" content="Official RailNet VPN Android Application with pfSense OpenVPN Integration, OTP Authentication, and 180-day Password Policy Enforcement.">
+    <title>RailNet VPN - Secure Enterprise Portal</title>
+    <meta name="description" content="RailNet VPN Web & Mobile Application with pfSense Tunnel Simulation, 180-Day Password Policy Enforcement, and OTP Verification.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    
     <style>
         :root {
-            --bg-primary: #0a0f1d;
-            --bg-card: rgba(18, 26, 47, 0.7);
+            --bg-main: #090d16;
+            --bg-card: rgba(16, 24, 40, 0.85);
+            --bg-card-hover: rgba(24, 34, 56, 0.9);
             --accent-cyan: #00f2fe;
             --accent-blue: #4facfe;
-            --accent-purple: #7f00ff;
-            --text-main: #ffffff;
-            --text-sub: #94a3b8;
-            --border-glow: rgba(0, 242, 254, 0.2);
-            --warning-gold: #ffb703;
+            --accent-green: #10b981;
+            --accent-red: #ef4444;
+            --warning-gold: #f59e0b;
+            --text-primary: #ffffff;
+            --text-secondary: #94a3b8;
+            --border-color: rgba(255, 255, 255, 0.08);
+            --border-glow: rgba(0, 242, 254, 0.3);
+            --radius-lg: 20px;
+            --radius-md: 12px;
         }
 
         * {
@@ -27,291 +33,547 @@
             padding: 0;
             box-sizing: border-box;
             font-family: 'Outfit', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
 
         body {
-            background-color: var(--bg-primary);
-            color: var(--text-main);
+            background-color: var(--bg-main);
+            color: var(--text-primary);
             min-height: 100vh;
-            overflow-x: hidden;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
             background-image: 
-                radial-gradient(circle at 15% 20%, rgba(79, 172, 254, 0.15) 0%, transparent 45%),
-                radial-gradient(circle at 85% 80%, rgba(127, 0, 255, 0.15) 0%, transparent 45%);
+                radial-gradient(circle at 10% 10%, rgba(79, 172, 254, 0.12) 0%, transparent 45%),
+                radial-gradient(circle at 90% 90%, rgba(0, 242, 254, 0.12) 0%, transparent 45%);
+            background-attachment: fixed;
+        }
+
+        /* Container */
+        .app-container {
+            width: 100%;
+            max-width: 480px;
+            background: var(--bg-card);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-lg);
+            padding: 2rem;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.7);
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
         }
 
         /* Header */
-        header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1.5rem 5%;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
-            backdrop-filter: blur(10px);
-            position: sticky;
-            top: 0;
-            z-index: 100;
+        .header {
+            text-align: center;
+            margin-bottom: 2rem;
         }
 
-        .logo-container {
-            display: flex;
-            align-items: center;
-            gap: 12px;
-        }
-
-        .logo-icon {
-            width: 42px;
-            height: 42px;
+        .logo-badge {
+            width: 64px;
+            height: 64px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
-            border-radius: 12px;
+            border-radius: 18px;
             display: flex;
             align-items: center;
             justify-content: center;
-            font-size: 22px;
-            box-shadow: 0 0 20px rgba(0, 242, 254, 0.4);
+            font-size: 32px;
+            margin: 0 auto 1rem;
+            box-shadow: 0 0 25px rgba(0, 242, 254, 0.4);
+            animation: floatLogo 4s ease-in-out infinite;
         }
 
-        .logo-text {
-            font-size: 1.5rem;
+        @keyframes floatLogo {
+            0%, 100% { transform: translateY(0px); }
+            50% { transform: translateY(-6px); }
+        }
+
+        .app-title {
+            font-size: 1.8rem;
             font-weight: 800;
             background: linear-gradient(90deg, #ffffff, var(--accent-cyan));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            letter-spacing: -0.5px;
+            margin-bottom: 0.3rem;
         }
 
-        .badge {
-            background: rgba(0, 242, 254, 0.1);
-            color: var(--accent-cyan);
-            padding: 4px 12px;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            border: 1px solid var(--border-glow);
-        }
-
-        /* Hero Section */
-        .hero {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            text-align: center;
-            padding: 5rem 1rem 3rem;
-            max-width: 900px;
-            margin: 0 auto;
-        }
-
-        .hero-tag {
-            background: rgba(255, 183, 3, 0.1);
-            color: var(--warning-gold);
-            padding: 6px 16px;
-            border-radius: 30px;
+        .app-subtitle {
             font-size: 0.9rem;
+            color: var(--text-secondary);
+        }
+
+        /* Form Inputs */
+        .form-group {
+            margin-bottom: 1.2rem;
+            position: relative;
+        }
+
+        .form-label {
+            display: block;
+            font-size: 0.85rem;
             font-weight: 600;
-            margin-bottom: 1.5rem;
-            border: 1px solid rgba(255, 183, 3, 0.3);
-            display: inline-flex;
+            color: var(--text-secondary);
+            margin-bottom: 0.4rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+        }
+
+        .input-field {
+            width: 100%;
+            background: rgba(255, 255, 255, 0.04);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 0.9rem 1.1rem;
+            color: #fff;
+            font-size: 1rem;
+            outline: none;
+            transition: all 0.3s ease;
+        }
+
+        .input-field:focus {
+            border-color: var(--accent-cyan);
+            box-shadow: 0 0 15px rgba(0, 242, 254, 0.2);
+            background: rgba(255, 255, 255, 0.07);
+        }
+
+        /* Buttons */
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: var(--radius-md);
+            border: none;
+            font-size: 1rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            display: flex;
             align-items: center;
-            gap: 8px;
-        }
-
-        .hero h1 {
-            font-size: 3.5rem;
-            font-weight: 800;
-            line-height: 1.15;
-            margin-bottom: 1.5rem;
-            background: linear-gradient(180deg, #ffffff 30%, #94a3b8 100%);
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .hero p {
-            font-size: 1.25rem;
-            color: var(--text-sub);
-            margin-bottom: 2.5rem;
-            max-width: 700px;
-            line-height: 1.6;
+            justify-content: center;
+            gap: 10px;
+            margin-top: 0.5rem;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
 
         .btn-primary {
-            display: inline-flex;
-            align-items: center;
-            gap: 12px;
             background: linear-gradient(135deg, var(--accent-cyan), var(--accent-blue));
             color: #000;
-            font-weight: 700;
-            font-size: 1.15rem;
-            padding: 1rem 2.5rem;
-            border-radius: 14px;
-            text-decoration: none;
-            box-shadow: 0 10px 30px rgba(0, 242, 254, 0.3);
-            transition: all 0.3s ease;
-            border: none;
-            cursor: pointer;
+            box-shadow: 0 10px 25px rgba(0, 242, 254, 0.3);
         }
 
         .btn-primary:hover {
-            transform: translateY(-3px);
-            box-shadow: 0 15px 40px rgba(0, 242, 254, 0.5);
+            transform: translateY(-2px);
+            box-shadow: 0 15px 30px rgba(0, 242, 254, 0.5);
         }
 
-        /* Features Section */
-        .features-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 2rem;
-            max-width: 1100px;
-            margin: 3rem auto;
-            padding: 0 1.5rem;
+        .btn-success {
+            background: linear-gradient(135deg, #10b981, #059669);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(16, 185, 129, 0.3);
         }
 
-        .feature-card {
-            background: var(--bg-card);
-            border: 1px solid rgba(255, 255, 255, 0.08);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(12px);
+        .btn-danger {
+            background: linear-gradient(135deg, #ef4444, #dc2626);
+            color: #fff;
+            box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
+        }
+
+        .btn:disabled {
+            opacity: 0.4;
+            cursor: not-allowed;
+            transform: none !important;
+            box-shadow: none !important;
+        }
+
+        /* Status Box */
+        .status-box {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid var(--border-color);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-top: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .status-indicator {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: var(--text-secondary);
+            flex-shrink: 0;
             transition: all 0.3s ease;
         }
 
-        .feature-card:hover {
-            border-color: var(--border-glow);
-            transform: translateY(-5px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.5);
+        .status-indicator.active {
+            background: var(--accent-green);
+            box-shadow: 0 0 12px var(--accent-green);
         }
 
-        .card-icon {
-            font-size: 2.5rem;
+        .status-indicator.connecting {
+            background: var(--warning-gold);
+            animation: pulse 1s infinite alternate;
+        }
+
+        @keyframes pulse {
+            0% { opacity: 0.4; }
+            100% { opacity: 1; }
+        }
+
+        .status-text {
+            font-size: 0.9rem;
+            color: var(--text-secondary);
+            line-height: 1.4;
+        }
+
+        /* Modal Alert Dialogs */
+        .modal-overlay {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100vw;
+            height: 100vh;
+            background: rgba(0, 0, 0, 0.8);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1.5rem;
+            z-index: 1000;
+            opacity: 0;
+            pointer-events: none;
+            transition: all 0.3s ease;
+        }
+
+        .modal-overlay.active {
+            opacity: 1;
+            pointer-events: auto;
+        }
+
+        .modal-card {
+            background: #121929;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 24px;
+            padding: 2rem;
+            max-width: 420px;
+            width: 100%;
+            text-align: center;
+            transform: scale(0.9);
+            transition: all 0.3s cubic-bezier(0.34, 1.56, 0.64, 1);
+            box-shadow: 0 30px 60px rgba(0,0,0,0.8);
+        }
+
+        .modal-overlay.active .modal-card {
+            transform: scale(1);
+        }
+
+        .modal-icon {
+            font-size: 3.5rem;
             margin-bottom: 1rem;
         }
 
-        .card-title {
-            font-size: 1.3rem;
-            font-weight: 700;
-            margin-bottom: 0.75rem;
+        .modal-title {
+            font-size: 1.4rem;
+            font-weight: 800;
+            margin-bottom: 0.8rem;
             color: #fff;
         }
 
-        .card-desc {
-            color: var(--text-sub);
+        .modal-desc {
             font-size: 0.95rem;
+            color: var(--text-secondary);
             line-height: 1.6;
+            margin-bottom: 1.8rem;
+            white-space: pre-line;
         }
 
-        /* Warning Banner Demo */
-        .warning-demo {
-            background: rgba(255, 183, 3, 0.05);
-            border: 1px solid rgba(255, 183, 3, 0.2);
-            border-radius: 16px;
-            padding: 1.5rem;
-            max-width: 800px;
-            margin: 2rem auto;
+        .hidden {
+            display: none !important;
+        }
+
+        /* Configurator Panel for Testing Password Expiry */
+        .config-panel {
+            margin-top: 2rem;
+            padding-top: 1rem;
+            border-top: 1px dashed var(--border-color);
             display: flex;
-            align-items: flex-start;
-            gap: 16px;
+            justify-content: space-between;
+            align-items: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
         }
 
-        .warning-icon {
-            font-size: 1.8rem;
-        }
-
-        .warning-text h4 {
-            color: var(--warning-gold);
-            font-size: 1.1rem;
-            margin-bottom: 4px;
-        }
-
-        .warning-text p {
-            color: #e2e8f0;
-            font-size: 0.95rem;
-            line-height: 1.5;
-        }
-
-        /* Footer */
-        footer {
-            text-align: center;
-            padding: 3rem 1rem;
-            border-top: 1px solid rgba(255, 255, 255, 0.05);
-            color: var(--text-sub);
-            font-size: 0.9rem;
-            margin-top: 4rem;
-        }
-
-        @media (max-width: 768px) {
-            .hero h1 { font-size: 2.3rem; }
-            .hero p { font-size: 1rem; }
-            .btn-primary { width: 100%; justify-content: center; }
+        .config-select {
+            background: rgba(255, 255, 255, 0.05);
+            color: #fff;
+            border: 1px solid var(--border-color);
+            border-radius: 6px;
+            padding: 4px 8px;
+            font-size: 0.8rem;
+            outline: none;
         }
     </style>
 </head>
 <body>
 
-    <header>
-        <div class="logo-container">
-            <div class="logo-icon">🛡️</div>
-            <div class="logo-text">RailNet VPN</div>
-        </div>
-        <div class="badge">Phase 2 OpenVPN Ready</div>
-    </header>
-
-    <main>
-        <section class="hero">
-            <div class="hero-tag">
-                <span>⚠️</span> 180-Day Password Security Policy Enforced
-            </div>
-            <h1>RailNet Secure VPN Access</h1>
-            <p>Official Android Mobile Application for RailNet Enterprise Network. Features Two-Factor Authentication, Static OTP Verification, pfSense OpenVPN Tunneling, and Automated Password Expiration Alerts.</p>
-            
-            <a href="https://github.com" id="downloadBtn" class="btn-primary" target="_blank">
-                <span>📲 Download RailNet VPN APK</span>
-            </a>
-        </section>
-
-        <!-- Warning Feature Highlight -->
-        <div class="warning-demo">
-            <div class="warning-icon">⚠️</div>
-            <div class="warning-text">
-                <h4>180-Day Security Warning Alert Integrated</h4>
-                <p>User passwords older than 180 days automatically trigger a mandatory Password Expired popup block in the Android application, enforcing periodic security resets before granting pfSense tunnel access.</p>
-            </div>
+    <!-- App Container -->
+    <div class="app-container">
+        
+        <!-- App Header -->
+        <div class="header">
+            <div class="logo-badge">🛡️</div>
+            <h1 class="app-title">RailNet VPN</h1>
+            <p class="app-subtitle">Phase 2 • pfSense OpenVPN Portal</p>
         </div>
 
-        <section class="features-grid">
-            <div class="feature-card">
-                <div class="card-icon">🔐</div>
-                <div class="card-title">2-Factor Authentication</div>
-                <div class="card-desc">Username, Password, and 6-digit Static OTP Challenge verification pipeline for enterprise authentication.</div>
+        <!-- Step 1: Login Credentials Form -->
+        <div id="loginStep">
+            <div class="form-group">
+                <label class="form-label" for="username">Username</label>
+                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username" value="railnet_user">
             </div>
 
-            <div class="feature-card">
-                <div class="card-icon">🛡️</div>
-                <div class="card-title">pfSense OpenVPN Engine</div>
-                <div class="card-desc">Built-in Android VpnService & OpenVpnTunnelEngine for fast, encrypted tunnel traffic routing to pfSense.</div>
+            <div class="form-group">
+                <label class="form-label" for="password">Password</label>
+                <input type="password" id="password" class="input-field" placeholder="Enter Password" value="password123">
             </div>
 
-            <div class="feature-card">
-                <div class="card-icon">⚠️</div>
-                <div class="card-title">Smart Warning Popups</div>
-                <div class="card-desc">Real-time bilingual (Hindi + English) alert dialogs for Wrong Credentials, Invalid OTP, and Expiry Warnings.</div>
-            </div>
-        </section>
-    </main>
+            <button id="loginBtn" class="btn btn-primary" onclick="handleLogin()">
+                <span>LOGIN</span> ➔
+            </button>
+        </div>
 
-    <footer>
-        <p>&copy; 2026 RailNet VPN Security Infrastructure. Authorized Personnel Only.</p>
-    </footer>
+        <!-- Step 2: 6-Digit OTP Verification Form -->
+        <div id="otpStep" class="hidden">
+            <div class="form-group">
+                <label class="form-label" for="otpInput">Enter 6-Digit OTP</label>
+                <input type="text" id="otpInput" class="input-field" placeholder="e.g. 123456" maxlength="6" style="letter-spacing: 6px; text-align: center; font-size: 1.3rem; font-weight: 700;">
+            </div>
+
+            <button id="verifyOtpBtn" class="btn btn-primary" onclick="handleVerifyOtp()">
+                <span>VERIFY OTP</span> 🔑
+            </button>
+        </div>
+
+        <!-- Step 3: Connect VPN Action Button -->
+        <div id="vpnStep" class="hidden">
+            <button id="connectVpnBtn" class="btn btn-success" onclick="toggleVpn()">
+                <span>CONNECT VPN</span> 🛡️
+            </button>
+        </div>
+
+        <!-- Status Panel -->
+        <div class="status-box">
+            <div id="statusIndicator" class="status-indicator"></div>
+            <div id="statusText" class="status-text">Status: Not Authenticated</div>
+        </div>
+
+        <!-- Interactive Policy Test Controls -->
+        <div class="config-panel">
+            <span>Password Policy Simulator:</span>
+            <select id="passwordAgeSim" class="config-select" onchange="onPolicySimChange()">
+                <option value="30">Normal (30 Days Old)</option>
+                <option value="175">Expiring Soon (175 Days)</option>
+                <option value="180" selected>Expired (180 Days Limit)</option>
+            </select>
+        </div>
+
+    </div>
+
+    <!-- Universal Alert Modal Popup -->
+    <div id="alertModal" class="modal-overlay">
+        <div class="modal-card">
+            <div id="modalIcon" class="modal-icon">⚠️</div>
+            <h3 id="modalTitle" class="modal-title">Warning Title</h3>
+            <p id="modalDesc" class="modal-desc">Warning description message goes here.</p>
+            <button id="modalBtn" class="btn btn-primary" onclick="closeModal()">OK</button>
+        </div>
+    </div>
 
     <script>
-        // Automatically link to GitHub Actions APK Artifacts or Release
-        const repoUrl = window.location.href.replace(/\/$/, "");
-        const downloadBtn = document.getElementById("downloadBtn");
-        if (repoUrl.includes("github.io")) {
-            // Convert pages URL to repository actions page
-            const parts = repoUrl.split(".github.io/");
-            if (parts.length === 2) {
-                const username = parts[0].replace("https://", "").replace("http://", "");
-                const repoName = parts[1];
-                downloadBtn.href = `https://github.com/${username}/${repoName}/actions`;
+        // State Machine Variables
+        let authenticatedUser = "";
+        let challengeId = null;
+        let isVpnConnected = false;
+
+        const statusIndicator = document.getElementById("statusIndicator");
+        const statusText = document.getElementById("statusText");
+        const passwordAgeSim = document.getElementById("passwordAgeSim");
+
+        // Modal Handler
+        function showAlert(icon, title, desc, btnText = "OK", onDismiss = null) {
+            document.getElementById("modalIcon").innerText = icon;
+            document.getElementById("modalTitle").innerText = title;
+            document.getElementById("modalDesc").innerText = desc;
+            
+            const btn = document.getElementById("modalBtn");
+            btn.innerText = btnText;
+            btn.onclick = function() {
+                closeModal();
+                if (onDismiss) onDismiss();
+            };
+
+            document.getElementById("alertModal").classList.add("active");
+        }
+
+        function closeModal() {
+            document.getElementById("alertModal").classList.remove("active");
+        }
+
+        // Login Handler
+        function handleLogin() {
+            const u = document.getElementById("username").value.trim();
+            const p = document.getElementById("password").value;
+
+            if (!u || !p) {
+                showAlert(
+                    "⚠️",
+                    "Missing Credentials",
+                    "Please enter both Username and Password.\n\nकृपया आगे बढ़ने के लिए यूजरनेम और पासवर्ड दोनों दर्ज करें।"
+                );
+                return;
             }
+
+            statusText.innerText = "Status: Checking credentials & 180-day policy...";
+            statusIndicator.className = "status-indicator connecting";
+
+            setTimeout(() => {
+                const ageDays = parseInt(passwordAgeSim.value);
+
+                // 180-Day Password Expired Check
+                if (ageDays >= 180) {
+                    statusIndicator.className = "status-indicator";
+                    statusText.innerText = "Status: Password Expired (180 Days Limit Reached)";
+                    
+                    showAlert(
+                        "🚫",
+                        "Password Expired (180 Days Limit)",
+                        "Your password has completed its 180-day validity period and has expired. You must reset your password to proceed.\n\nआपका पासवर्ड 180 दिन पुराना होने के कारण एक्सपायर हो गया है। कृपया आगे बढ़ने के लिए पासवर्ड बदलें।",
+                        "Reset Password / पासवर्ड बदलें"
+                    );
+                    return;
+                }
+
+                // Pre-expiry warning (170-179 days)
+                if (ageDays >= 170) {
+                    const daysLeft = 180 - ageDays;
+                    showAlert(
+                        "⚠️",
+                        "Password Expiring Soon",
+                        `Your password will expire in ${daysLeft} day(s) due to the 180-day security policy. Please update it soon.\n\nआपका पासवर्ड ${daysLeft} दिनों में समाप्त होने वाला है।`
+                    );
+                }
+
+                // Wrong Password Test Case check
+                if (p === "wrong") {
+                    statusIndicator.className = "status-indicator";
+                    statusText.innerText = "Status: Login Failed (Wrong Credentials)";
+                    showAlert(
+                        "⚠️",
+                        "Incorrect Credentials",
+                        "Invalid Username or Password. Please verify and try again.\n\nगलत यूजरनेम या पासवर्ड! कृपया अपनी जानकारी जांचें और पुनः प्रयास करें।"
+                    );
+                    return;
+                }
+
+                // Successful Login -> Show OTP step
+                authenticatedUser = u;
+                challengeId = "CHALLENGE_" + Math.floor(Math.random() * 899999 + 100000);
+                
+                document.getElementById("loginStep").classList.add("hidden");
+                document.getElementById("otpStep").classList.remove("hidden");
+                
+                statusIndicator.className = "status-indicator connecting";
+                statusText.innerText = "Status: Password Verified — Enter 6-Digit OTP";
+
+            }, 800);
+        }
+
+        // OTP Verification Handler
+        function handleVerifyOtp() {
+            const otp = document.getElementById("otpInput").value.trim();
+
+            if (!otp || otp.length !== 6 || isNaN(otp)) {
+                showAlert(
+                    "⚠️",
+                    "Invalid OTP Format",
+                    "OTP must be a 6-digit numeric code.\n\nOTP केवल 6-अंकीय कोड होना चाहिए।"
+                );
+                return;
+            }
+
+            statusText.innerText = "Status: Verifying 6-digit OTP...";
+
+            setTimeout(() => {
+                if (otp === "000000") {
+                    showAlert(
+                        "⚠️",
+                        "Invalid OTP Warning",
+                        "The 6-digit OTP entered is incorrect or expired. Multiple failed attempts will lock access.\n\nदर्ज किया गया 6-अंकीय OTP अमान्य या समाप्त हो गया है।"
+                    );
+                    statusText.innerText = "Status: OTP Verification Failed";
+                    return;
+                }
+
+                // OTP Success
+                document.getElementById("otpStep").classList.add("hidden");
+                document.getElementById("vpnStep").classList.remove("hidden");
+
+                statusIndicator.className = "status-indicator active";
+                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN";
+
+            }, 600);
+        }
+
+        // VPN Tunnel Toggle Handler
+        function toggleVpn() {
+            const btn = document.getElementById("connectVpnBtn");
+
+            if (!isVpnConnected) {
+                // Connect Tunnel
+                statusIndicator.className = "status-indicator connecting";
+                statusText.innerText = "Status: Initiating pfSense OpenVPN Tunnel...";
+                btn.disabled = true;
+
+                setTimeout(() => {
+                    isVpnConnected = true;
+                    btn.disabled = false;
+                    btn.className = "btn btn-danger";
+                    btn.innerHTML = `<span>DISCONNECT VPN</span> 🛑`;
+
+                    statusIndicator.className = "status-indicator active";
+                    statusText.innerHTML = `<strong>Status: CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-cyan)">IP: 10.8.0.2 • Encrypted (AES-256-GCM)</small>`;
+                    
+                    showAlert(
+                        "🛡️",
+                        "VPN Connected!",
+                        "pfSense OpenVPN Tunnel Established successfully.\nYour internet traffic is now fully encrypted & secured."
+                    );
+                }, 1200);
+
+            } else {
+                // Disconnect Tunnel
+                isVpnConnected = false;
+                btn.className = "btn btn-success";
+                btn.innerHTML = `<span>CONNECT VPN</span> 🛡️`;
+
+                statusIndicator.className = "status-indicator";
+                statusText.innerText = "Status: VPN Disconnected";
+            }
+        }
+
+        function onPolicySimChange() {
+            // Reset to step 1 when policy option changes
+            document.getElementById("loginStep").classList.remove("hidden");
+            document.getElementById("otpStep").classList.add("hidden");
+            document.getElementById("vpnStep").classList.add("hidden");
+            statusIndicator.className = "status-indicator";
+            statusText.innerText = "Status: Not Authenticated";
         }
     </script>
 </body>
