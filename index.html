@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>RailNet VPN - Secure Enterprise Portal</title>
-    <meta name="description" content="RailNet VPN Web & Mobile Application with pfSense Tunnel Simulation, 180-Day Password Policy Enforcement, and OTP Verification.">
+    <meta name="description" content="RailNet VPN Web & Mobile Application with pfSense .ovpn profile upload, 180-Day Password Policy Enforcement, and OTP Verification.">
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -70,7 +70,7 @@
         /* Header */
         .header {
             text-align: center;
-            margin-bottom: 2rem;
+            margin-bottom: 1.5rem;
         }
 
         .logo-badge {
@@ -104,6 +104,40 @@
         .app-subtitle {
             font-size: 0.9rem;
             color: var(--text-secondary);
+        }
+
+        /* Profile Upload Card */
+        .profile-upload-box {
+            background: rgba(255, 255, 255, 0.03);
+            border: 2px dashed rgba(0, 242, 254, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            text-align: center;
+            margin-bottom: 1.5rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-upload-box:hover {
+            border-color: var(--accent-cyan);
+            background: rgba(0, 242, 254, 0.05);
+        }
+
+        .upload-icon {
+            font-size: 1.8rem;
+            margin-bottom: 4px;
+        }
+
+        .upload-title {
+            font-size: 0.95rem;
+            font-weight: 700;
+            color: var(--accent-cyan);
+        }
+
+        .upload-sub {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            margin-top: 2px;
         }
 
         /* Form Inputs */
@@ -180,13 +214,6 @@
             background: linear-gradient(135deg, #ef4444, #dc2626);
             color: #fff;
             box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
-        }
-
-        .btn:disabled {
-            opacity: 0.4;
-            cursor: not-allowed;
-            transform: none !important;
-            box-shadow: none !important;
         }
 
         /* Status Box */
@@ -296,9 +323,9 @@
             display: none !important;
         }
 
-        /* Configurator Panel for Testing Password Expiry */
+        /* Configurator Panel */
         .config-panel {
-            margin-top: 2rem;
+            margin-top: 1.5rem;
             padding-top: 1rem;
             border-top: 1px dashed var(--border-color);
             display: flex;
@@ -329,6 +356,14 @@
             <div class="logo-badge">🛡️</div>
             <h1 class="app-title">RailNet VPN</h1>
             <p class="app-subtitle">Phase 2 • pfSense OpenVPN Portal</p>
+        </div>
+
+        <!-- OpenVPN Profile (.ovpn) File Upload Card -->
+        <div class="profile-upload-box" onclick="document.getElementById('ovpnFileInput').click()">
+            <div class="upload-icon">📂</div>
+            <div id="profileNameDisplay" class="upload-title">Upload pfSense (.ovpn) Profile</div>
+            <div id="profileSubDisplay" class="upload-sub">Click to select .ovpn configuration file</div>
+            <input type="file" id="ovpnFileInput" accept=".ovpn,.ovf,.txt" style="display: none;" onchange="handleProfileUpload(event)">
         </div>
 
         <!-- Step 1: Login Credentials Form -->
@@ -370,7 +405,7 @@
         <!-- Status Panel -->
         <div class="status-box">
             <div id="statusIndicator" class="status-indicator"></div>
-            <div id="statusText" class="status-text">Status: Not Authenticated</div>
+            <div id="statusText" class="status-text">Status: Profile Ready — Not Authenticated</div>
         </div>
 
         <!-- Interactive Policy Test Controls -->
@@ -396,14 +431,45 @@
     </div>
 
     <script>
-        // State Machine Variables
         let authenticatedUser = "";
-        let challengeId = null;
         let isVpnConnected = false;
+        let loadedProfileName = "pfSense_RailNet.ovpn";
+        let loadedHost = "10.0.2.2";
 
         const statusIndicator = document.getElementById("statusIndicator");
         const statusText = document.getElementById("statusText");
         const passwordAgeSim = document.getElementById("passwordAgeSim");
+
+        // .ovpn File Upload Handler
+        function handleProfileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            loadedProfileName = file.name;
+            const reader = new FileReader();
+            
+            reader.onload = function(e) {
+                const content = e.target.result;
+                
+                // Extract remote host from .ovpn file
+                const match = content.match(/remote\s+([^\s]+)/i);
+                if (match && match[1]) {
+                    loadedHost = match[1];
+                }
+
+                document.getElementById("profileNameDisplay").innerText = "✓ " + loadedProfileName;
+                document.getElementById("profileSubDisplay").innerText = "Profile loaded (" + loadedHost + ")";
+                document.getElementById("profileNameDisplay").style.color = "var(--accent-green)";
+
+                showAlert(
+                    "📁",
+                    "Profile Imported!",
+                    `OpenVPN Profile "${loadedProfileName}" successfully loaded.\nTarget Server: ${loadedHost}`
+                );
+            };
+
+            reader.readAsText(file);
+        }
 
         // Modal Handler
         function showAlert(icon, title, desc, btnText = "OK", onDismiss = null) {
@@ -483,7 +549,6 @@
 
                 // Successful Login -> Show OTP step
                 authenticatedUser = u;
-                challengeId = "CHALLENGE_" + Math.floor(Math.random() * 899999 + 100000);
                 
                 document.getElementById("loginStep").classList.add("hidden");
                 document.getElementById("otpStep").classList.remove("hidden");
@@ -525,7 +590,7 @@
                 document.getElementById("vpnStep").classList.remove("hidden");
 
                 statusIndicator.className = "status-indicator active";
-                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN";
+                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN (" + loadedProfileName + ")";
 
             }, 600);
         }
@@ -537,7 +602,7 @@
             if (!isVpnConnected) {
                 // Connect Tunnel
                 statusIndicator.className = "status-indicator connecting";
-                statusText.innerText = "Status: Initiating pfSense OpenVPN Tunnel...";
+                statusText.innerText = "Status: Initiating pfSense OpenVPN Tunnel (" + loadedHost + ")...";
                 btn.disabled = true;
 
                 setTimeout(() => {
@@ -547,12 +612,12 @@
                     btn.innerHTML = `<span>DISCONNECT VPN</span> 🛑`;
 
                     statusIndicator.className = "status-indicator active";
-                    statusText.innerHTML = `<strong>Status: CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-cyan)">IP: 10.8.0.2 • Encrypted (AES-256-GCM)</small>`;
+                    statusText.innerHTML = `<strong>Status: CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-cyan)">IP: 10.8.0.2 • ${loadedProfileName} (${loadedHost})</small>`;
                     
                     showAlert(
                         "🛡️",
                         "VPN Connected!",
-                        "pfSense OpenVPN Tunnel Established successfully.\nYour internet traffic is now fully encrypted & secured."
+                        `pfSense OpenVPN Tunnel Established successfully using profile "${loadedProfileName}".\nYour internet traffic is now fully encrypted & secured.`
                     );
                 }, 1200);
 
@@ -568,12 +633,11 @@
         }
 
         function onPolicySimChange() {
-            // Reset to step 1 when policy option changes
             document.getElementById("loginStep").classList.remove("hidden");
             document.getElementById("otpStep").classList.add("hidden");
             document.getElementById("vpnStep").classList.add("hidden");
             statusIndicator.className = "status-indicator";
-            statusText.innerText = "Status: Not Authenticated";
+            statusText.innerText = "Status: Profile Ready — Not Authenticated";
         }
     </script>
 </body>
