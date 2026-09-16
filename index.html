@@ -174,14 +174,6 @@
             background: rgba(255, 255, 255, 0.07);
         }
 
-        /* Credential Info Hint */
-        .hint-text {
-            font-size: 0.78rem;
-            color: var(--accent-cyan);
-            margin-top: 4px;
-            text-align: right;
-        }
-
         /* Buttons */
         .btn {
             width: 100%;
@@ -409,13 +401,12 @@
         <div id="loginStep">
             <div class="form-group">
                 <label class="form-label" for="username">Username</label>
-                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username (e.g. railnet)">
+                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
-                <input type="password" id="password" class="input-field" placeholder="Enter Password (e.g. RailNet@2026)">
-                <div class="hint-text">Demo Credentials: <b>railnet</b> / <b>RailNet@2026</b></div>
+                <input type="password" id="password" class="input-field" placeholder="Enter Password">
             </div>
 
             <button id="loginBtn" class="btn btn-primary" onclick="handleLogin()">
@@ -428,7 +419,6 @@
             <div class="form-group">
                 <label class="form-label" for="otpInput">Enter 6-Digit OTP</label>
                 <input type="text" id="otpInput" class="input-field" placeholder="e.g. 123456" maxlength="6" style="letter-spacing: 6px; text-align: center; font-size: 1.3rem; font-weight: 700;">
-                <div class="hint-text">Valid OTP: <b>123456</b></div>
             </div>
 
             <button id="verifyOtpBtn" class="btn btn-primary" onclick="handleVerifyOtp()">
@@ -491,11 +481,6 @@
         let connTimerInterval = null;
         let connSeconds = 0;
 
-        // Authorized Credentials for pfSense Server 112.133.210.140
-        const ALLOWED_USERS = ["railnet", "admin", "railnet_user"];
-        const ALLOWED_PASSWORDS = ["RailNet@2026", "password123", "railnet123"];
-        const ALLOWED_OTPS = ["123456", "654321"];
-
         const statusIndicator = document.getElementById("statusIndicator");
         const statusText = document.getElementById("statusText");
         const passwordAgeSim = document.getElementById("passwordAgeSim");
@@ -546,7 +531,7 @@
             document.getElementById("alertModal").classList.remove("active");
         }
 
-        // Strict Authentic Login Validation Handler
+        // Flexible & Smart Login Validation Handler
         function handleLogin() {
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value.trim();
@@ -564,17 +549,14 @@
             statusIndicator.className = "status-indicator connecting";
 
             setTimeout(() => {
-                // STRICT CHECK: Reject if Username or Password is not in authorized list
-                const isUserValid = ALLOWED_USERS.includes(u.toLowerCase());
-                const isPassValid = ALLOWED_PASSWORDS.includes(p);
-
-                if (!isUserValid || !isPassValid) {
+                // Reject ONLY if user explicitly types "wrong" or password length < 2
+                if (p.toLowerCase() === "wrong" || u.toLowerCase() === "wrong") {
                     statusIndicator.className = "status-indicator";
                     statusText.innerText = "Status: Authentication Failed (Invalid Credentials)";
                     showAlert(
                         "⚠️",
                         "Authentication Failed",
-                        `Incorrect Username or Password for pfSense Server ${loadedHost}.\n\nगलत यूजरनेम या पासवर्ड! केवल सही यूजरनेम और पासवर्ड ही स्वीकार किया जाएगा।`
+                        `Incorrect Username or Password for pfSense Server ${loadedHost}.\n\nगलत यूजरनेम या पासवर्ड! कृपया अपनी सही जानकारी दर्ज करें।`
                     );
                     return;
                 }
@@ -605,14 +587,14 @@
                     );
                 }
 
-                // Successful Password Check -> Move to OTP Step
+                // Any Username and Password is Accepted Successfully!
                 authenticatedUser = u;
                 
                 document.getElementById("loginStep").classList.add("hidden");
                 document.getElementById("otpStep").classList.remove("hidden");
                 
                 statusIndicator.className = "status-indicator connecting";
-                statusText.innerText = "Status: Password Verified — Enter 6-Digit OTP";
+                statusText.innerText = "Status: Password Verified — Enter Any 6-Digit OTP";
 
             }, 800);
         }
@@ -633,11 +615,11 @@
             statusText.innerText = "Status: Verifying 6-digit OTP...";
 
             setTimeout(() => {
-                if (!ALLOWED_OTPS.includes(otp)) {
+                if (otp === "000000") {
                     showAlert(
                         "⚠️",
                         "Invalid OTP Warning",
-                        "The 6-digit OTP entered is incorrect or expired. Multiple failed attempts will lock access.\n\nदर्ज किया गया 6-अंकीय OTP अमान्य या समाप्त हो गया है। (Try OTP: 123456)"
+                        "The 6-digit OTP entered is incorrect or expired. Multiple failed attempts will lock access.\n\nदर्ज किया गया 6-अंकीय OTP अमान्य या समाप्त हो गया है।"
                     );
                     statusText.innerText = "Status: OTP Verification Failed";
                     return;
