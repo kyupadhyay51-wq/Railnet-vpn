@@ -216,6 +216,37 @@
             box-shadow: 0 10px 25px rgba(239, 68, 68, 0.3);
         }
 
+        /* Live Tunnel Stats Card */
+        .stats-card {
+            background: rgba(16, 185, 129, 0.08);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            border-radius: var(--radius-md);
+            padding: 1rem;
+            margin-bottom: 1rem;
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 10px;
+            text-align: center;
+        }
+
+        .stat-item {
+            display: flex;
+            flex-direction: column;
+            gap: 2px;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+        }
+
+        .stat-val {
+            font-size: 1.1rem;
+            font-weight: 700;
+            color: var(--accent-green);
+        }
+
         /* Status Box */
         .status-box {
             background: rgba(0, 0, 0, 0.3);
@@ -395,8 +426,20 @@
             </button>
         </div>
 
-        <!-- Step 3: Connect VPN Action Button -->
+        <!-- Step 3: Connect VPN Action Button & Live Tunnel Stats -->
         <div id="vpnStep" class="hidden">
+            <!-- Live Connected Tunnel Stats -->
+            <div id="liveStatsCard" class="stats-card hidden">
+                <div class="stat-item">
+                    <span class="stat-label">Duration</span>
+                    <span id="connTimer" class="stat-val">00:00:00</span>
+                </div>
+                <div class="stat-item">
+                    <span class="stat-label">Data Sent / Recv</span>
+                    <span id="dataUsage" class="stat-val">↑ 1.4MB • ↓ 8.2MB</span>
+                </div>
+            </div>
+
             <button id="connectVpnBtn" class="btn btn-success" onclick="toggleVpn()">
                 <span>CONNECT VPN</span> 🛡️
             </button>
@@ -435,6 +478,11 @@
         let isVpnConnected = false;
         let loadedProfileName = "pfSense_RailNet.ovpn";
         let loadedHost = "pfSense Server";
+        let connTimerInterval = null;
+        let connSeconds = 0;
+
+        // Valid Demo Password for Verification
+        const VALID_PASSWORD = "password123";
 
         const statusIndicator = document.getElementById("statusIndicator");
         const statusText = document.getElementById("statusText");
@@ -451,7 +499,6 @@
             reader.onload = function(e) {
                 const content = e.target.result;
                 
-                // Extract remote host from .ovpn file if available
                 const match = content.match(/remote\s+([^\s]+)/i);
                 if (match && match[1]) {
                     loadedHost = match[1];
@@ -460,12 +507,6 @@
                 document.getElementById("profileNameDisplay").innerText = "✓ " + loadedProfileName;
                 document.getElementById("profileSubDisplay").innerText = "Profile loaded (" + loadedHost + ")";
                 document.getElementById("profileNameDisplay").style.color = "var(--accent-green)";
-
-                showAlert(
-                    "📁",
-                    "Profile Imported!",
-                    `OpenVPN Profile "${loadedProfileName}" successfully loaded.\nTarget Server: ${loadedHost}`
-                );
             };
 
             reader.readAsText(file);
@@ -491,7 +532,7 @@
             document.getElementById("alertModal").classList.remove("active");
         }
 
-        // Login Handler
+        // Strict Login & Password Validation Handler
         function handleLogin() {
             const u = document.getElementById("username").value.trim();
             const p = document.getElementById("password").value;
@@ -511,7 +552,7 @@
             setTimeout(() => {
                 const ageDays = parseInt(passwordAgeSim.value);
 
-                // 180-Day Password Expired Check
+                // 1. Check 180-Day Password Expired Policy
                 if (ageDays >= 180) {
                     statusIndicator.className = "status-indicator";
                     statusText.innerText = "Status: Password Expired (180 Days Limit Reached)";
@@ -525,6 +566,19 @@
                     return;
                 }
 
+                // 2. Strict Wrong Password Check
+                // Accept valid password 'password123' or any custom password user sets, reject 'wrong' or empty
+                if (p.toLowerCase() === "wrong" || (p !== VALID_PASSWORD && p.length < 6)) {
+                    statusIndicator.className = "status-indicator";
+                    statusText.innerText = "Status: Login Failed (Wrong Credentials)";
+                    showAlert(
+                        "⚠️",
+                        "Incorrect Credentials",
+                        "Invalid Username or Password. Please verify your credentials and try again.\n\nगलत यूजरनेम या पासवर्ड! कृपया अपनी सही जानकारी दर्ज करें।"
+                    );
+                    return;
+                }
+
                 // Pre-expiry warning (170-179 days)
                 if (ageDays >= 170) {
                     const daysLeft = 180 - ageDays;
@@ -533,18 +587,6 @@
                         "Password Expiring Soon",
                         `Your password will expire in ${daysLeft} day(s) due to the 180-day security policy. Please update it soon.\n\nआपका पासवर्ड ${daysLeft} दिनों में समाप्त होने वाला है।`
                     );
-                }
-
-                // Wrong Password Test Case check
-                if (p === "wrong") {
-                    statusIndicator.className = "status-indicator";
-                    statusText.innerText = "Status: Login Failed (Wrong Credentials)";
-                    showAlert(
-                        "⚠️",
-                        "Incorrect Credentials",
-                        "Invalid Username or Password. Please verify and try again.\n\nगलत यूजरनेम या पासवर्ड! कृपया अपनी जानकारी जांचें और पुनः प्रयास करें।"
-                    );
-                    return;
                 }
 
                 // Successful Login -> Show OTP step
@@ -590,7 +632,7 @@
                 document.getElementById("vpnStep").classList.remove("hidden");
 
                 statusIndicator.className = "status-indicator active";
-                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN (" + loadedProfileName + ")";
+                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN";
 
             }, 600);
         }
@@ -602,7 +644,7 @@
             if (!isVpnConnected) {
                 // Connect Tunnel
                 statusIndicator.className = "status-indicator connecting";
-                statusText.innerText = "Status: Initiating pfSense OpenVPN Tunnel (" + loadedHost + ")...";
+                statusText.innerText = "Status: Establishing pfSense OpenVPN Tunnel (" + loadedHost + ")...";
                 btn.disabled = true;
 
                 setTimeout(() => {
@@ -611,19 +653,33 @@
                     btn.className = "btn btn-danger";
                     btn.innerHTML = `<span>DISCONNECT VPN</span> 🛑`;
 
+                    document.getElementById("liveStatsCard").classList.remove("hidden");
                     statusIndicator.className = "status-indicator active";
-                    statusText.innerHTML = `<strong>Status: CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-cyan)">${loadedProfileName} (${loadedHost})</small>`;
+                    statusText.innerHTML = `<strong>CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-green)">Encrypted Tunnel Active (${loadedProfileName})</small>`;
                     
-                    showAlert(
-                        "🛡️",
-                        "VPN Connected!",
-                        `pfSense OpenVPN Tunnel Established successfully using profile "${loadedProfileName}".\nYour internet traffic is now fully encrypted & secured.`
-                    );
-                }, 1200);
+                    // Start Live Tunnel Duration Timer
+                    connSeconds = 0;
+                    if (connTimerInterval) clearInterval(connTimerInterval);
+                    connTimerInterval = setInterval(() => {
+                        connSeconds++;
+                        const hrs = String(Math.floor(connSeconds / 3600)).padStart(2, '0');
+                        const mins = String(Math.floor((connSeconds % 3600) / 60)).padStart(2, '0');
+                        const secs = String(connSeconds % 60).padStart(2, '0');
+                        document.getElementById("connTimer").innerText = `${hrs}:${mins}:${secs}`;
+                        
+                        const sent = (1.2 + (connSeconds * 0.05)).toFixed(1);
+                        const recv = (6.4 + (connSeconds * 0.18)).toFixed(1);
+                        document.getElementById("dataUsage").innerText = `↑ ${sent}MB • ↓ ${recv}MB`;
+                    }, 1000);
+
+                }, 1000);
 
             } else {
                 // Disconnect Tunnel
                 isVpnConnected = false;
+                if (connTimerInterval) clearInterval(connTimerInterval);
+                
+                document.getElementById("liveStatsCard").classList.add("hidden");
                 btn.className = "btn btn-success";
                 btn.innerHTML = `<span>CONNECT VPN</span> 🛡️`;
 
@@ -633,9 +689,12 @@
         }
 
         function onPolicySimChange() {
+            if (connTimerInterval) clearInterval(connTimerInterval);
+            isVpnConnected = false;
             document.getElementById("loginStep").classList.remove("hidden");
             document.getElementById("otpStep").classList.add("hidden");
             document.getElementById("vpnStep").classList.add("hidden");
+            document.getElementById("liveStatsCard").classList.add("hidden");
             statusIndicator.className = "status-indicator";
             statusText.innerText = "Status: Profile Ready — Not Authenticated";
         }
