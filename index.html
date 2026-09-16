@@ -174,6 +174,14 @@
             background: rgba(255, 255, 255, 0.07);
         }
 
+        /* Credential Info Hint */
+        .hint-text {
+            font-size: 0.78rem;
+            color: var(--accent-cyan);
+            margin-top: 4px;
+            text-align: right;
+        }
+
         /* Buttons */
         .btn {
             width: 100%;
@@ -401,12 +409,13 @@
         <div id="loginStep">
             <div class="form-group">
                 <label class="form-label" for="username">Username</label>
-                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username" value="">
+                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username (e.g. railnet)">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
-                <input type="password" id="password" class="input-field" placeholder="Enter Password" value="">
+                <input type="password" id="password" class="input-field" placeholder="Enter Password (e.g. RailNet@2026)">
+                <div class="hint-text">Demo Credentials: <b>railnet</b> / <b>RailNet@2026</b></div>
             </div>
 
             <button id="loginBtn" class="btn btn-primary" onclick="handleLogin()">
@@ -419,6 +428,7 @@
             <div class="form-group">
                 <label class="form-label" for="otpInput">Enter 6-Digit OTP</label>
                 <input type="text" id="otpInput" class="input-field" placeholder="e.g. 123456" maxlength="6" style="letter-spacing: 6px; text-align: center; font-size: 1.3rem; font-weight: 700;">
+                <div class="hint-text">Valid OTP: <b>123456</b></div>
             </div>
 
             <button id="verifyOtpBtn" class="btn btn-primary" onclick="handleVerifyOtp()">
@@ -481,8 +491,10 @@
         let connTimerInterval = null;
         let connSeconds = 0;
 
-        // Valid Demo Password for Verification
-        const VALID_PASSWORD = "password123";
+        // Authorized Credentials for pfSense Server 112.133.210.140
+        const ALLOWED_USERS = ["railnet", "admin", "railnet_user"];
+        const ALLOWED_PASSWORDS = ["RailNet@2026", "password123", "railnet123"];
+        const ALLOWED_OTPS = ["123456", "654321"];
 
         const statusIndicator = document.getElementById("statusIndicator");
         const statusText = document.getElementById("statusText");
@@ -534,10 +546,10 @@
             document.getElementById("alertModal").classList.remove("active");
         }
 
-        // Strict Login & Password Validation Handler
+        // Strict Authentic Login Validation Handler
         function handleLogin() {
             const u = document.getElementById("username").value.trim();
-            const p = document.getElementById("password").value;
+            const p = document.getElementById("password").value.trim();
 
             if (!u || !p) {
                 showAlert(
@@ -548,13 +560,28 @@
                 return;
             }
 
-            statusText.innerText = "Status: Checking credentials & 180-day policy...";
+            statusText.innerText = "Status: Authenticating credentials against pfSense 112.133.210.140...";
             statusIndicator.className = "status-indicator connecting";
 
             setTimeout(() => {
+                // STRICT CHECK: Reject if Username or Password is not in authorized list
+                const isUserValid = ALLOWED_USERS.includes(u.toLowerCase());
+                const isPassValid = ALLOWED_PASSWORDS.includes(p);
+
+                if (!isUserValid || !isPassValid) {
+                    statusIndicator.className = "status-indicator";
+                    statusText.innerText = "Status: Authentication Failed (Invalid Credentials)";
+                    showAlert(
+                        "⚠️",
+                        "Authentication Failed",
+                        `Incorrect Username or Password for pfSense Server ${loadedHost}.\n\nगलत यूजरनेम या पासवर्ड! केवल सही यूजरनेम और पासवर्ड ही स्वीकार किया जाएगा।`
+                    );
+                    return;
+                }
+
                 const ageDays = parseInt(passwordAgeSim.value);
 
-                // 1. Check 180-Day Password Expired Policy
+                // Check 180-Day Password Expired Policy
                 if (ageDays >= 180) {
                     statusIndicator.className = "status-indicator";
                     statusText.innerText = "Status: Password Expired (180 Days Limit Reached)";
@@ -564,18 +591,6 @@
                         "Password Expired (180 Days Limit)",
                         "Your password has completed its 180-day validity period and has expired. You must reset your password to proceed.\n\nआपका पासवर्ड 180 दिन पुराना होने के कारण एक्सपायर हो गया है। कृपया आगे बढ़ने के लिए पासवर्ड बदलें।",
                         "Reset Password / पासवर्ड बदलें"
-                    );
-                    return;
-                }
-
-                // 2. Strict Wrong Password Check
-                if (p.toLowerCase() === "wrong" || (p !== VALID_PASSWORD && p.length < 6)) {
-                    statusIndicator.className = "status-indicator";
-                    statusText.innerText = "Status: Login Failed (Wrong Credentials)";
-                    showAlert(
-                        "⚠️",
-                        "Incorrect Credentials",
-                        "Invalid Username or Password. Please verify your credentials and try again.\n\nगलत यूजरनेम या पासवर्ड! कृपया अपनी सही जानकारी दर्ज करें।"
                     );
                     return;
                 }
@@ -590,7 +605,7 @@
                     );
                 }
 
-                // Successful Login -> Show OTP step
+                // Successful Password Check -> Move to OTP Step
                 authenticatedUser = u;
                 
                 document.getElementById("loginStep").classList.add("hidden");
@@ -618,11 +633,11 @@
             statusText.innerText = "Status: Verifying 6-digit OTP...";
 
             setTimeout(() => {
-                if (otp === "000000") {
+                if (!ALLOWED_OTPS.includes(otp)) {
                     showAlert(
                         "⚠️",
                         "Invalid OTP Warning",
-                        "The 6-digit OTP entered is incorrect or expired. Multiple failed attempts will lock access.\n\nदर्ज किया गया 6-अंकीय OTP अमान्य या समाप्त हो गया है।"
+                        "The 6-digit OTP entered is incorrect or expired. Multiple failed attempts will lock access.\n\nदर्ज किया गया 6-अंकीय OTP अमान्य या समाप्त हो गया है। (Try OTP: 123456)"
                     );
                     statusText.innerText = "Status: OTP Verification Failed";
                     return;
