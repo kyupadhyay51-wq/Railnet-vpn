@@ -370,12 +370,12 @@
         <div id="loginStep">
             <div class="form-group">
                 <label class="form-label" for="username">Username</label>
-                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username" value="railnet_user">
+                <input type="text" id="username" class="input-field" placeholder="Enter RailNet Username" value="">
             </div>
 
             <div class="form-group">
                 <label class="form-label" for="password">Password</label>
-                <input type="password" id="password" class="input-field" placeholder="Enter Password" value="password123">
+                <input type="password" id="password" class="input-field" placeholder="Enter Password" value="">
             </div>
 
             <button id="loginBtn" class="btn btn-primary" onclick="handleLogin()">
@@ -434,7 +434,7 @@
         let authenticatedUser = "";
         let isVpnConnected = false;
         let loadedProfileName = "pfSense_RailNet.ovpn";
-        let loadedHost = "10.0.2.2";
+        let loadedHost = "pfSense Server";
 
         const statusIndicator = document.getElementById("statusIndicator");
         const statusText = document.getElementById("statusText");
@@ -451,7 +451,7 @@
             reader.onload = function(e) {
                 const content = e.target.result;
                 
-                // Extract remote host from .ovpn file
+                // Extract remote host from .ovpn file if available
                 const match = content.match(/remote\s+([^\s]+)/i);
                 if (match && match[1]) {
                     loadedHost = match[1];
@@ -612,7 +612,7 @@
                     btn.innerHTML = `<span>DISCONNECT VPN</span> 🛑`;
 
                     statusIndicator.className = "status-indicator active";
-                    statusText.innerHTML = `<strong>Status: CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-cyan)">IP: 10.8.0.2 • ${loadedProfileName} (${loadedHost})</small>`;
+                    statusText.innerHTML = `<strong>Status: CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-cyan)">${loadedProfileName} (${loadedHost})</small>`;
                     
                     showAlert(
                         "🛡️",
