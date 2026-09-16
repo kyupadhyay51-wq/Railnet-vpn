@@ -393,7 +393,7 @@
         <div class="profile-upload-box" onclick="document.getElementById('ovpnFileInput').click()">
             <div class="upload-icon">📂</div>
             <div id="profileNameDisplay" class="upload-title">Upload pfSense (.ovpn) Profile</div>
-            <div id="profileSubDisplay" class="upload-sub">Click to select .ovpn configuration file</div>
+            <div id="profileSubDisplay" class="upload-sub">Target Server IP: 112.133.210.140</div>
             <input type="file" id="ovpnFileInput" accept=".ovpn,.ovf,.txt" style="display: none;" onchange="handleProfileUpload(event)">
         </div>
 
@@ -435,8 +435,8 @@
                     <span id="connTimer" class="stat-val">00:00:00</span>
                 </div>
                 <div class="stat-item">
-                    <span class="stat-label">Data Sent / Recv</span>
-                    <span id="dataUsage" class="stat-val">↑ 1.4MB • ↓ 8.2MB</span>
+                    <span class="stat-label">Public Server IP</span>
+                    <span id="serverIpDisplay" class="stat-val">112.133.210.140</span>
                 </div>
             </div>
 
@@ -448,7 +448,7 @@
         <!-- Status Panel -->
         <div class="status-box">
             <div id="statusIndicator" class="status-indicator"></div>
-            <div id="statusText" class="status-text">Status: Profile Ready — Not Authenticated</div>
+            <div id="statusText" class="status-text">Status: Target Server 112.133.210.140 — Not Authenticated</div>
         </div>
 
         <!-- Interactive Policy Test Controls -->
@@ -477,7 +477,7 @@
         let authenticatedUser = "";
         let isVpnConnected = false;
         let loadedProfileName = "pfSense_RailNet.ovpn";
-        let loadedHost = "pfSense Server";
+        let loadedHost = "112.133.210.140";
         let connTimerInterval = null;
         let connSeconds = 0;
 
@@ -502,10 +502,12 @@
                 const match = content.match(/remote\s+([^\s]+)/i);
                 if (match && match[1]) {
                     loadedHost = match[1];
+                } else {
+                    loadedHost = "112.133.210.140";
                 }
 
                 document.getElementById("profileNameDisplay").innerText = "✓ " + loadedProfileName;
-                document.getElementById("profileSubDisplay").innerText = "Profile loaded (" + loadedHost + ")";
+                document.getElementById("profileSubDisplay").innerText = "Server IP: " + loadedHost;
                 document.getElementById("profileNameDisplay").style.color = "var(--accent-green)";
             };
 
@@ -567,7 +569,6 @@
                 }
 
                 // 2. Strict Wrong Password Check
-                // Accept valid password 'password123' or any custom password user sets, reject 'wrong' or empty
                 if (p.toLowerCase() === "wrong" || (p !== VALID_PASSWORD && p.length < 6)) {
                     statusIndicator.className = "status-indicator";
                     statusText.innerText = "Status: Login Failed (Wrong Credentials)";
@@ -632,7 +633,7 @@
                 document.getElementById("vpnStep").classList.remove("hidden");
 
                 statusIndicator.className = "status-indicator active";
-                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN";
+                statusText.innerText = "Status: Authenticated — Ready to Connect pfSense OpenVPN (" + loadedHost + ")";
 
             }, 600);
         }
@@ -653,9 +654,10 @@
                     btn.className = "btn btn-danger";
                     btn.innerHTML = `<span>DISCONNECT VPN</span> 🛑`;
 
+                    document.getElementById("serverIpDisplay").innerText = loadedHost;
                     document.getElementById("liveStatsCard").classList.remove("hidden");
                     statusIndicator.className = "status-indicator active";
-                    statusText.innerHTML = `<strong>CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-green)">Encrypted Tunnel Active (${loadedProfileName})</small>`;
+                    statusText.innerHTML = `<strong>CONNECTED TO RAILNET PFSENSE VPN</strong><br><small style="color:var(--accent-green)">Server IP: ${loadedHost} • Encrypted Tunnel Active</small>`;
                     
                     // Start Live Tunnel Duration Timer
                     connSeconds = 0;
@@ -666,10 +668,6 @@
                         const mins = String(Math.floor((connSeconds % 3600) / 60)).padStart(2, '0');
                         const secs = String(connSeconds % 60).padStart(2, '0');
                         document.getElementById("connTimer").innerText = `${hrs}:${mins}:${secs}`;
-                        
-                        const sent = (1.2 + (connSeconds * 0.05)).toFixed(1);
-                        const recv = (6.4 + (connSeconds * 0.18)).toFixed(1);
-                        document.getElementById("dataUsage").innerText = `↑ ${sent}MB • ↓ ${recv}MB`;
                     }, 1000);
 
                 }, 1000);
@@ -696,7 +694,7 @@
             document.getElementById("vpnStep").classList.add("hidden");
             document.getElementById("liveStatsCard").classList.add("hidden");
             statusIndicator.className = "status-indicator";
-            statusText.innerText = "Status: Profile Ready — Not Authenticated";
+            statusText.innerText = "Status: Target Server 112.133.210.140 — Not Authenticated";
         }
     </script>
 </body>
